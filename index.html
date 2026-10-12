@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VectorStock Studio — PNG to Vector + Prompt BYOK</title>
+<meta name="theme-color" content="#0a0a0f">
+<style>
+:root{--bg:#0a0a0f;--panel:#14141e;--panel2:#1c1c2a;--border:#2a2a3a;--accent:#7c5cfa;--accent2:#a78bfa;--accent3:#06d6a0;--text:#f1f1f5;--muted:#9a9ab0;--danger:#ff4d6d;--radius:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:99px}
+header{position:sticky;top:0;z-index:20;background:rgba(10,10,15,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:10px 18px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:18px}
+.logo i{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:grid;place-items:center;font-style:normal;font-size:16px}
+nav{display:flex;gap:6px;background:var(--panel);padding:4px;border-radius:999px;border:1px solid var(--border)}
+.nav-btn{padding:7px 16px;border-radius:999px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-weight:600;font-size:13px;transition:.15s}
+.nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(124,92,250,.35)}
+.header-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.badge{font-size:11px;padding:4px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)}
+.btn{padding:9px 14px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text);cursor:pointer;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:#6d4af0}
+.btn-ghost{background:transparent}
+.btn-sm{padding:6px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+main{max-width:1320px;margin:0 auto;padding:18px;display:grid;gap:18px}
+.tab{display:none}.tab.active{display:block}
+.grid2{display:grid;grid-template-columns:360px 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:320px 1fr 300px;gap:16px}
+@media(max-width:980px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-h{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card-h h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.card-b{padding:14px 16px}
+label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px}
+input,select,textarea{width:100%;padding:10px 11px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:13px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px}
+.row{display:flex;gap:8px;align-items:center}
+.row > *{flex:1}
+.range-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.range-row input[type=range]{flex:1}
+.range-val{min-width:36px;text-align:center;font-size:12px;background:var(--panel2);border:1px solid var(--border);padding:4px 6px;border-radius:8px}
+.drop{border:1.5px dashed var(--border);border-radius:12px;padding:22px;text-align:center;background:var(--panel2);cursor:pointer;transition:.15s}
+.drop.drag{border-color:var(--accent);background:rgba(124,92,250,.08)}
+.drop img{max-width:100%;max-height:220px;border-radius:8px;margin-top:10px;display:none}
+.canvas-wrap{background:#fff;border-radius:12px;min-height:420px;display:grid;place-items:center;position:relative;overflow:hidden;border:1px solid var(--border)}
+.canvas-wrap svg{max-width:100%;max-height:480px}
+.layers{max-height:340px;overflow:auto;display:grid;gap:6px}
+.layer{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);font-size:12px}
+.layer input[type=color]{width:28px;height:28px;padding:0;border-radius:6px;cursor:pointer;flex:none}
+.sep{height:1px;background:var(--border);margin:12px 0}
+.kbd{font-size:11px;padding:2px 6px;border-radius:6px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)}
+.prompt-card{padding:12px;border-radius:12px;background:var(--panel2);border:1px solid var(--border);display:grid;gap:8px}
+.prompt-card pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:var(--panel);padding:10px;border-radius:8px;border:1px solid var(--border);max-height:160px;overflow:auto}
+.tag{display:inline-block;padding:3px 8px;border-radius:999px;background:var(--panel);border:1px solid var(--border);font-size:11px;color:var(--muted);margin:2px}
+.notice{padding:10px 12px;border-radius:10px;font-size:12px;border:1px solid var(--border);background:rgba(124,92,250,.08);color:var(--accent2)}
+.warn{background:rgba(255,77,109,.08);color:#ff8fa3;border-color:rgba(255,77,109,.25)}
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.stat span{font-size:11px;padding:4px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--border)}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1c1c2a;border:1px solid var(--border);padding:10px 14px;border-radius:999px;font-size:13px;display:none;z-index:50;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.subtabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.subtab{padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--muted);cursor:pointer;font-size:12px;font-weight:600}
+.subtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.provider{display:flex;gap:6px;margin-bottom:10px}
+.provider button{flex:1}
+.provider button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i>◈</i> VectorStock Studio <span class="badge">PWA · BYOK</span></div>
+  <nav>
+    <button class="nav-btn active" data-tab="trace">◐ Trace Vector</button>
+    <button class="nav-btn" data-tab="prompt">✦ Prompt Studio</button>
+    <button class="nav-btn" data-tab="keys">🔑 API Keys</button>
+  </nav>
+  <div class="header-right">
+    <span class="kbd">key simpan lokal</span>
+    <button class="btn btn-sm" id="btnInstall" style="display:none">⬇ Install</button>
+  </div>
+</header>
+<main>
+<section class="tab active" id="tab-trace">
+  <div class="notice">Upload PNG/JPG → Trace jadi vector edit-able → Export SVG/EPS/PNG/JPG/ZIP siap Adobe Stock. Semua proses di browser, file tidak naik server.</div>
+  <div class="grid3" style="margin-top:14px">
+    <div style="display:grid;gap:16px;align-content:start">
+      <div class="card">
+        <div class="card-h"><h3>1 — Upload</h3><span class="kbd">PNG / JPG ≤20MB</span></div>
+        <div class="card-b">
+          <div class="drop" id="drop">
+            <div style="font-weight:700">Tarik gambar kesini</div>
+            <div style="font-size:12px;color:var(--muted)">atau klik pilih file</div>
+            <img id="previewImg" alt="">
+            <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" hidden>
+          </div>
+          <div class="sep"></div>
+          <div class="row">
+            <div><label>Artboard (px)</label><select id="artSize"><option value="4000">4000 — Adobe min</option><option value="5000" selected>5000</option><option value="6000">6000</option><option value="3000">3000</option></select></div>
+            <div><label>Background</label><select id="bgMode"><option value="white">Putih</option><option value="transparent" selected>Transparan</option><option value="checker">Checker</option></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>2 — Trace setting</h3><button class="btn btn-sm" id="btnTrace">⚡ Trace</button></div>
+        <div class="card-b">
+          <label>Mode</label>
+          <select id="traceMode"><option value="color" selected>Warna (color)</option><option value="bw">Hitam-Putih</option></select>
+          <div class="range-row"><label style="flex:none;width:110px">Jumlah warna</label><input type="range" id="colors" min="2" max="64" value="16"><span class="range-val" id="colorsVal">16</span></div>
+          <div class="range-row"><label style="flex:none;width:110px">Smoothing</label><input type="range" id="smooth" min="0" max="5" step="0.5" value="1"><span class="range-val" id="smoothVal">1</span></div>
+          <div class="range-row"><label style="flex:none;width:110px">Simplify</label><input type="range" id="simplify" min="0" max="1" step="0.05" value="0.3"><span class="range-val" id="simplifyVal">0.30</span></div>
+          <label style="margin-top:8px"><input type="checkbox" id="despeckle" checked> Hapus bintik kecil</label>
+          <label><input type="checkbox" id="ltres" checked> Path lurus threshold halus</label>
+          <div class="sep"></div>
+          <div class="notice warn" style="font-size:11px">Adobe Stock: hindari gradient & blur. Trace paling bersih 8–16 warna + simplify 0.2–0.4.</div>
+          <div class="stat"><span id="statPaths">0 path</span><span id="statColors">0 warna</span><span id="statSize">—</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Export Adobe Stock</h3></div>
+        <div class="card-b">
+          <div class="row" style="flex-wrap:wrap">
+            <button class="btn btn-primary" id="btnSVG">SVG</button>
+            <button class="btn" id="btnEPS">EPS</button>
+            <button class="btn" id="btnPNG">PNG</button>
+            <button class="btn" id="btnJPG">JPG</button>
+          </div>
+          <button class="btn btn-primary" id="btnZIP" style="width:100%;margin-top:8px;justify-content:center">⬇ ZIP SVG+JPG (Adobe Stock)</button>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">ZIP isi: vector.svg + vector.eps + preview.jpg + info.txt</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-h"><h3>Canvas Vector</h3><div class="row" style="flex:none;gap:6px"><button class="btn btn-sm" id="btnFit">Fit</button><button class="btn btn-sm" id="btnZoomIn">+</button><button class="btn btn-sm" id="btnZoomOut">−</button></div></div>
+      <div class="card-b" style="flex:1;display:grid;place-items:center;background:#0f0f17">
+        <div class="canvas-wrap" id="canvasWrap" style="width:100%">
+          <div id="placeholder" style="text-align:center;color:var(--muted);padding:30px">
+            <div style="font-size:40px">◇</div>
+            <div style="font-weight:700;margin-top:8px">Belum ada vector</div>
+            <div style="font-size:12px">Upload lalu klik Trace</div>
+          </div>
+          <div id="svgHost" style="display:none;width:100%;height:100%"></div>
+        </div>
+      </div>
+      <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm" id="btnRemoveBg">Hapus background putih</button>
+        <button class="btn btn-sm btn-ghost" id="btnReset">Reset</button>
+      </div>
+    </div>
+    <div style="display:grid;gap:16px;align-content:start">
+      <div class="card">
+        <div class="card-h"><h3>Layers / Warna</h3><span class="kbd" id="layerCount">0</span></div>
+        <div class="card-b">
+          <div class="layers" id="layers"></div>
+          <div id="noLayers" style="font-size:12px;color:var(--muted);text-align:center;padding:12px">Trace dulu untuk lihat layers</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Cek Adobe Stock</h3></div>
+        <div class="card-b" style="font-size:12px;color:var(--muted);display:grid;gap:6px">
+          <div>☐ Path tertutup (no open stroke)</div>
+          <div>☐ Tanpa raster ter-embed</div>
+          <div>☐ JPG preview sRGB 4000px+</div>
+          <div>☐ EPS compat Illustrator 10</div>
+          <div class="sep"></div>
+          <a href="https://stock.adobe.com/contributor" target="_blank" rel="noopener">→ Buka Adobe Stock Contributor</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="tab" id="tab-prompt">
+  <div class="subtabs">
+    <button class="subtab active" data-sub="maker">Prompt Maker</button>
+    <button class="subtab" data-sub="analyze">Analisa Gambar Ref</button>
+    <button class="subtab" data-sub="paraphrase">Parafrase</button>
+    <button class="subtab" data-sub="history">History</button>
+  </div>
+  <div class="sub" id="sub-maker">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><h3>Generator prompt</h3></div>
+        <div class="card-b" style="display:grid;gap:10px">
+          <label>Kategori Adobe Stock</label>
+          <select id="cat"><option>flat vector illustration</option><option>line icon set</option><option>seamless pattern</option><option>isometric illustration</option><option>character mascot</option><option>infographic</option><option>abstract background</option><option>floral / botanical</option><option>business concept</option><option>doodle / hand drawn</option><option>3D vector look</option></select>
+          <label>Subjek / Ide</label><input id="subject" placeholder="contoh: cute cat astronaut, coffee shop, delivery parcel">
+          <div class="row"><div><label>Style</label><select id="style"><option>minimal flat, clean shape</option><option>outline linear, thin stroke</option><option>gradient soft</option><option>kawaii pastel</option><option>corporate memphis</option><option>vintage retro</option></select></div><div><label>Palette</label><select id="palette"><option>pastel soft</option><option>vivid bold</option><option>monochrome</option><option>earth tone</option><option>neon</option><option>white background, no gradient</option></select></div></div>
+          <div class="row"><div><label>Komposisi</label><input id="comp" placeholder="centered, isolated, white background"></div><div><label>Jumlah variasi</label><select id="varCount"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option></select></div></div>
+          <label>Negative (hindari)</label><input id="neg" placeholder="no photo, no gradient, no text, no watermark">
+          <button class="btn btn-primary" id="btnGenPrompt">✦ Generate prompt</button>
+        </div>
+      </div>
+      <div style="display:grid;gap:12px;align-content:start" id="makerResults"></div>
+    </div>
+  </div>
+  <div class="sub" id="sub-analyze" style="display:none">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><h3>Upload gambar referensi</h3></div>
+        <div class="card-b">
+          <div class="drop" id="refDrop">
+            <div style="font-weight:700">Drop gambar ref kesini</div>
+            <div style="font-size:12px;color:var(--muted)">atau klik pilih</div>
+            <img id="refImg" alt="" style="max-height:260px;margin-top:10px;display:none">
+            <input type="file" id="refInput" accept="image/*" hidden>
+          </div>
+          <button class="btn btn-primary" id="btnAnalyze" style="width:100%;margin-top:12px">🔍 Analisa jadi prompt</button>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">Butuh API key vision (OpenAI/Gemini/Claude). Tanpa key, pakai heuristic lokal.</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:12px" id="analyzeResults"></div>
+    </div>
+  </div>
+  <div class="sub" id="sub-paraphrase" style="display:none">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><h3>Parafrase prompt</h3></div>
+        <div class="card-b" style="display:grid;gap:10px">
+          <label>Prompt asli</label><textarea id="paraInput" rows="4" placeholder="paste prompt disini..."></textarea>
+          <div class="row"><div><label>Jumlah variasi</label><select id="paraCount"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option></select></div><div><label>Gaya</label><select id="paraStyle"><option value="vector-optimized">Vector-optimized</option><option value="keyword-rich">Keyword-rich (Adobe)</option><option value="casual">Santai</option><option value="formal">Formal</option></select></div></div>
+          <button class="btn btn-primary" id="btnParaphrase">↻ Parafrase</button>
+          <button class="btn" id="btnParaFromMaker" style="display:none">↳ pakai hasil Maker terakhir</button>
+        </div>
+      </div>
+      <div style="display:grid;gap:12px" id="paraResults"></div>
+    </div>
+  </div>
+  <div class="sub" id="sub-history" style="display:none">
+    <div class="card">
+      <div class="card-h"><h3>History</h3><button class="btn btn-sm" id="btnClearHist">Hapus</button></div>
+      <div class="card-b"><div id="histList" style="display:grid;gap:8px"></div><div style="margin-top:10px" class="row"><button class="btn btn-sm" id="btnExportCSV">Export CSV</button><button class="btn btn-sm" id="btnExportTXT">Export TXT</button></div></div>
+    </div>
+  </div>
+</section>
+<section class="tab" id="tab-keys">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h3>BYOK — API Keys</h3><span class="kbd">localStorage only</span></div>
+      <div class="card-b" style="display:grid;gap:12px">
+        <div class="notice">Key simpan di browser saja (localStorage). Pilih satu provider. Tanpa key, semua prompt pakai template lokal offline.</div>
+        <div class="provider">
+          <button class="subtab active" data-prov="openai">OpenAI</button>
+          <button class="subtab" data-prov="gemini">Gemini</button>
+          <button class="subtab" data-prov="anthropic">Claude</button>
+        </div>
+        <div id="prov-openai">
+          <label>OpenAI API Key (sk-...)</label><input id="keyOpenAI" type="password" placeholder="sk-proj-...">
+          <label style="margin-top:8px">Model</label><select id="modelOpenAI"><option value="gpt-4o-mini" selected>gpt-4o-mini (vision + murah)</option><option value="gpt-4o">gpt-4o</option><option value="gpt-3.5-turbo">gpt-3.5-turbo (text only)</option></select>
+        </div>
+        <div id="prov-gemini" style="display:none">
+          <label>Gemini API Key</label><input id="keyGemini" type="password" placeholder="AIza...">
+          <label style="margin-top:8px">Model</label><select id="modelGemini"><option value="gemini-1.5-flash" selected>gemini-1.5-flash</option><option value="gemini-1.5-pro">gemini-1.5-pro</option><option value="gemini-2.0-flash">gemini-2.0-flash</option></select>
+        </div>
+        <div id="prov-anthropic" style="display:none">
+          <label>Claude API Key</label><input id="keyClaude" type="password" placeholder="sk-ant-...">
+          <label style="margin-top:8px">Model</label><select id="modelClaude"><option value="claude-3-5-haiku-latest" selected>claude-3-5-haiku (murah)</option><option value="claude-3-5-sonnet-latest">claude-3-5-sonnet</option></select>
+        </div>
+        <label style="margin-top:8px">Provider aktif</label><select id="activeProv"><option value="openai">OpenAI</option><option value="gemini">Gemini</option><option value="anthropic">Claude</option><option value="local">Local template (no API)</option></select>
+        <div class="row"><button class="btn btn-primary" id="btnSaveKeys">💾 Simpan</button><button class="btn" id="btnTestKey">Test koneksi</button></div>
+        <div class="notice" id="keyNotice" style="display:none"></div>
+        <div class="sep"></div>
+        <div style="font-size:12px;color:var(--muted)">Dapat key: <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a> · <a href="https://aistudio.google.com/app/apikey" target="_blank">Gemini</a> · <a href="https://console.anthropic.com/settings/keys" target="_blank">Claude</a></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>Cara pakai</h3></div>
+      <div class="card-b" style="font-size:13px;color:var(--muted);display:grid;gap:8px;line-height:1.6">
+        <div><b style="color:var(--text)">1.</b> Simpan key di tab ini, pilih provider aktif.</div>
+        <div><b style="color:var(--text)">2.</b> Prompt Maker / Parafrase otomatis pakai LLM jika key ada, fallback template lokal jika tidak.</div>
+        <div><b style="color:var(--text)">3.</b> Analisa gambar butuh vision model — pakai gpt-4o-mini atau gemini flash (murah).</div>
+        <div><b style="color:var(--text)">4.</b> History auto-simpan, export CSV siap upload Adobe Stock.</div>
+        <div style="font-size:11px">Estimasi: gpt-4o-mini ~$0.15/1M input. 100 prompt ~ &lt; $0.02.</div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=(m,ms=2200)=>{const t=$("#toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",ms)};
+const LS_KEYS="vs_keys", LS_HIST="vs_hist";
+let svgContent="", origSvgContent="", lastMakerPrompts=[], currentScale=1;
+$$(".nav-btn").forEach(b=>b.addEventListener("click",()=>{
+  $$(".nav-btn").forEach(x=>x.classList.remove("active")); b.classList.add("active");
+  $$(".tab").forEach(t=>t.classList.remove("active")); $("#tab-"+b.dataset.tab).classList.add("active");
+}));
+$$(".subtab").forEach(b=>{
+  if(!b.dataset.sub) return;
+  b.addEventListener("click",()=>{
+    b.parentElement.querySelectorAll(".subtab").forEach(x=>x.classList.remove("active")); b.classList.add("active");
+    b.closest("#tab-prompt").querySelectorAll(".sub").forEach(s=>s.style.display="none");
+    $("#sub-"+b.dataset.sub).style.display="";
+  });
+});
+$$(".provider .subtab").forEach(b=>b.addEventListener("click",()=>{
+  $$(".provider .subtab").forEach(x=>x.classList.remove("active")); b.classList.add("active");
+  $("#prov-openai").style.display=b.dataset.prov==="openai"?"":"none";
+  $("#prov-gemini").style.display=b.dataset.prov==="gemini"?"":"none";
+  $("#prov-anthropic").style.display=b.dataset.prov==="anthropic"?"":"none";
+  $("#activeProv").value=b.dataset.prov;
+}));
+function loadKeys(){
+  try{const k=JSON.parse(localStorage.getItem(LS_KEYS)||"{}");
+    $("#keyOpenAI").value=k.openai||""; $("#keyGemini").value=k.gemini||""; $("#keyClaude").value=k.claude||"";
+    $("#modelOpenAI").value=k.modelOpenAI||"gpt-4o-mini";
+    $("#modelGemini").value=k.modelGemini||"gemini-1.5-flash";
+    $("#modelClaude").value=k.modelClaude||"claude-3-5-haiku-latest";
+    $("#activeProv").value=k.active||"openai";
+  }catch{}
+}
+function saveKeys(){
+  const k={openai:$("#keyOpenAI").value.trim(), gemini:$("#keyGemini").value.trim(), claude:$("#keyClaude").value.trim(),
+    modelOpenAI:$("#modelOpenAI").value, modelGemini:$("#modelGemini").value, modelClaude:$("#modelClaude").value, active:$("#activeProv").value};
+  localStorage.setItem(LS_KEYS, JSON.stringify(k)); return k;
+}
+$("#btnSaveKeys").addEventListener("click",()=>{saveKeys(); toast("Key tersimpan lokal ✓")});
+loadKeys();
+$("#btnTestKey").addEventListener("click", async()=>{
+  saveKeys();
+  const notice=$("#keyNotice"); notice.style.display=""; notice.textContent="Test...";
+  try{ const r=await callLLM("ping test, reply pong", null, {maxTokens:8}); notice.textContent="✓ Koneksi ok: "+(r||"pong"); notice.className="notice"; }
+  catch(e){ notice.textContent="✗ "+(e.message||e); notice.className="notice warn"; }
+});
+async function callLLM(prompt, imageBase64, opts={}){
+  const k=JSON.parse(localStorage.getItem(LS_KEYS)||"{}");
+  const prov=opts.provider||k.active||"openai";
+  if(prov==="local" || (!k.openai && !k.gemini && !k.claude)) throw new Error("No API key — pakai template lokal");
+  if(prov==="openai"){
+    if(!k.openai) throw new Error("OpenAI key kosong");
+    const model=opts.model||k.modelOpenAI||"gpt-4o-mini";
+    const messages=[{role:"user", content: imageBase64 ? [{type:"text",text:prompt},{type:"image_url",image_url:{url:imageBase64}}] : prompt }];
+    const res=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+k.openai},body:JSON.stringify({model,messages,temperature:.8,max_tokens:opts.maxTokens||900})});
+    const j=await res.json(); if(!res.ok) throw new Error(j.error?.message||res.statusText); return j.choices[0].message.content.trim();
+  }
+  if(prov==="gemini"){
+    if(!k.gemini) throw new Error("Gemini key kosong");
+    const model=opts.model||k.modelGemini||"gemini-1.5-flash";
+    const parts=[{text:prompt}]; if(imageBase64){ const m=imageBase64.match(/^data:(.+);base64,(.+)$/); if(m) parts.push({inline_data:{mime_type:m[1],data:m[2]}})}
+    const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent?key="+k.gemini,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts}],generationConfig:{temperature:.8,maxOutputTokens:opts.maxTokens||900}})});
+    const j=await res.json(); if(!res.ok) throw new Error(j.error?.message||res.statusText); return (j.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"").trim();
+  }
+  if(prov==="anthropic"){
+    if(!k.claude) throw new Error("Claude key kosong");
+    const model=opts.model||k.modelClaude||"claude-3-5-haiku-latest";
+    const content=[{type:"text",text:prompt}]; if(imageBase64){ const m=imageBase64.match(/^data:(.+);base64,(.+)$/); if(m) content.push({type:"image",source:{type:"base64",media_type:m[1],data:m[2]}})}
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":k.claude,"anthropic-version":"2023-06-01"},body:JSON.stringify({model,max_tokens:opts.maxTokens||900,messages:[{role:"user",content}]})});
+    const j=await res.json(); if(!res.ok) throw new Error(j.error?.message||res.statusText); return (j.content?.map(c=>c.text).join("").trim()||"");
+  }
+}
+function b64FromFile(file){ return new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file)})}
+function addHist(entry){ const h=JSON.parse(localStorage.getItem(LS_HIST)||"[]"); h.unshift({t:Date.now(),...entry}); localStorage.setItem(LS_HIST, JSON.stringify(h.slice(0,200))); renderHist()}
+function renderHist(){
+  const h=JSON.parse(localStorage.getItem(LS_HIST)||"[]");
+  const el=$("#histList"); if(!h.length){el.innerHTML='<div style="color:var(--muted);font-size:12px">Belum ada history</div>'; return}
+  const esc=s=>s.replace(/"/g,"&quot;").replace(/</g,"&lt;");
+  el.innerHTML=h.map((x,i)=>'<div class="prompt-card"><div style="font-size:11px;color:var(--muted)">'+new Date(x.t).toLocaleString()+' · '+(x.kind||"")+'</div><pre>'+esc((x.prompt||x.text||"").slice(0,600))+'</pre><div class="row"><button class="btn btn-sm" data-copy="'+i+'">Copy</button><button class="btn btn-sm btn-ghost" data-para="'+i+'">Parafrase</button></div></div>').join("");
+  el.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",()=>{const x=h[+b.dataset.copy]; navigator.clipboard.writeText(x.prompt||x.text||""); toast("Copied")}));
+  el.querySelectorAll("[data-para]").forEach(b=>b.addEventListener("click",()=>{const x=h[+b.dataset.para]; $("#paraInput").value=x.prompt||x.text||""; document.querySelector('[data-tab="prompt"]').click(); document.querySelector('[data-sub="paraphrase"]').click(); $("#sub-maker").style.display="none"; $("#sub-analyze").style.display="none"; $("#sub-history").style.display="none"; $("#sub-paraphrase").style.display="";}));
+}
+renderHist();
+$("#btnClearHist").addEventListener("click",()=>{localStorage.removeItem(LS_HIST); renderHist(); toast("History hapus")});
+$("#btnExportCSV").addEventListener("click",()=>{
+  const h=JSON.parse(localStorage.getItem(LS_HIST)||"[]");
+  let csv="title,keywords,prompt\n";
+  h.forEach(x=>{ const t=(x.prompt||x.text||"").replace(/"/g,'""').slice(0,180); const kw=(x.keywords||"").replace(/"/g,'""'); csv+='"'+t+'","'+kw+'","'+t+'"\n'; });
+  download(csv,"vector-prompts.csv","text/csv");
+});
+$("#btnExportTXT").addEventListener("click",()=>{
+  const h=JSON.parse(localStorage.getItem(LS_HIST)||"[]");
+  download(h.map(x=>x.prompt||x.text||"").join("\n\n---\n\n"),"prompts.txt","text/plain");
+});
+function download(content, name, mime){
+  const b=new Blob([content],{type:mime}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function localPrompts(o){
+  const s=o.subject||"abstract shape";
+  const base=o.cat+", "+s+", "+o.style+", "+o.palette+" palette, "+(o.comp||"isolated on white background, centered")+", clean vector, flat design, no gradient, sharp edges";
+  const vars=[ base+", minimal composition, bold outline", base+", seamless tiled composition, decorative", base+", isometric view, soft shadow", base+", character style, cute, friendly", base+", pattern repeat, ornamental", base+", infographic style, icons and labels space", base+", line art, thin stroke, elegant", base+", doodle hand-drawn, playful", base+", corporate Memphis, geometric", base+", vintage retro, muted tones"];
+  const out=[]; for(let i=0;i<o.count;i++) out.push(vars[i%vars.length] + (o.neg?", avoid "+o.neg:""));
+  return out;
+}
+$("#btnGenPrompt").addEventListener("click", async()=>{
+  const cat=$("#cat").value, subject=$("#subject").value.trim(), style=$("#style").value, palette=$("#palette").value, comp=$("#comp").value.trim(), neg=$("#neg").value.trim(), count=parseInt($("#varCount").value);
+  const btn=$("#btnGenPrompt"); btn.disabled=true; btn.textContent="...";
+  try{
+    let prompts=[];
+    try{
+      const sys="Kamu generator prompt untuk Adobe Stock vector. Output "+count+" prompt, satu per baris, tanpa nomor berlebih, tanpa penjelasan. Tiap prompt: style + subjek + komposisi + warna + vector tag (clean shape, no gradient, white background).";
+      const user="Kategori:"+cat+" Subjek:"+(subject||"(bebas)")+" Style:"+style+" Palette:"+palette+" Komposisi:"+(comp||"isolated white background")+" Negative:"+(neg||"none")+" — buat "+count+" variasi prompt";
+      const raw=await callLLM(sys+"\n"+user);
+      prompts=raw.split("\n").map(s=>s.replace(/^\s*\d+[\).\s-]+/,"").trim()).filter(s=>s.length>12).slice(0,count);
+      if(prompts.length<count) throw new Error("short");
+    }catch(e){
+      if(String(e.message).includes("No API key")) toast("Tanpa key → pakai template lokal");
+      else toast("LLM gagal, fallback lokal: "+e.message.slice(0,80));
+      prompts=localPrompts({cat,subject,style,palette,comp,neg,count});
+    }
+    lastMakerPrompts=prompts;
+    const host=$("#makerResults"); host.innerHTML="";
+    prompts.forEach((p,i)=>{
+      const d=document.createElement("div"); d.className="prompt-card";
+      d.innerHTML='<div style="font-size:11px;color:var(--muted)">#'+(i+1)+'</div><pre>'+p.replace(/</g,"&lt;")+'</pre><div class="row"><button class="btn btn-sm btn-primary">Copy</button><button class="btn btn-sm">Parafrase</button><button class="btn btn-sm btn-ghost">Simpan</button></div>';
+      const buts=d.querySelectorAll("button");
+      buts[0].onclick=()=>{navigator.clipboard.writeText(p); toast("Copied #"+(i+1))};
+      buts[1].onclick=()=>{ $("#paraInput").value=p; document.querySelector('[data-tab="prompt"]').click(); $$(".subtab[data-sub]").forEach(x=>x.classList.remove("active")); document.querySelector('[data-sub="paraphrase"]').classList.add("active"); $$(".sub").forEach(s=>s.style.display="none"); $("#sub-paraphrase").style.display=""; };
+      buts[2].onclick=()=>{addHist({kind:"maker",prompt:p}); toast("Simpan history ✓")};
+      host.appendChild(d);
+    });
+    $("#btnParaFromMaker").style.display="";
+    addHist({kind:"maker-batch", text:prompts.join("\n"), prompt:prompts[0]});
+  }finally{ btn.disabled=false; btn.textContent="✦ Generate prompt"; }
+});
+$("#btnParaFromMaker").addEventListener("click",()=>{ if(lastMakerPrompts[0]){$("#paraInput").value=lastMakerPrompts[0]; document.querySelector('[data-tab="prompt"]').click(); $$(".subtab[data-sub]").forEach(x=>x.classList.remove("active")); document.querySelector('[data-sub="paraphrase"]').classList.add("active"); $$(".sub").forEach(s=>s.style.display="none"); $("#sub-paraphrase").style.display=""; }});
+let refB64="";
+$("#refDrop").addEventListener("click",()=>$("#refInput").click());
+$("#refDrop").addEventListener("dragover",e=>{e.preventDefault(); e.currentTarget.classList.add("drag")});
+$("#refDrop").addEventListener("dragleave",e=>e.currentTarget.classList.remove("drag"));
+$("#refDrop").addEventListener("drop",async e=>{e.preventDefault(); e.currentTarget.classList.remove("drag"); const f=e.dataTransfer.files[0]; if(f) handleRef(f)});
+$("#refInput").addEventListener("change",e=>{const f=e.target.files[0]; if(f) handleRef(f)});
+async function handleRef(file){
+  refB64=await b64FromFile(file);
+  const img=$("#refImg"); img.src=refB64; img.style.display="block";
+}
+function localAnalyzeFallback(){
+  return "flat vector illustration, clean geometric shapes, minimal composition, pastel palette, isolated on white background, sharp edges, no gradient — inferred from reference (local heuristic).";
+}
+$("#btnAnalyze").addEventListener("click", async()=>{
+  if(!refB64){toast("Upload gambar ref dulu"); return}
+  const btn=$("#btnAnalyze"); btn.disabled=true; btn.textContent="Analisa...";
+  try{
+    try{
+      const p='Analisa gambar ini untuk Adobe Stock vector. Output format JSON: {"prompt":"...","style":"...","palette":"...","keywords":["k1","k2",...30 kata],"composition":"..."}. Prompt harus vector-friendly, clean shape, white background, no gradient. Balas JSON saja.';
+      const raw=await callLLM(p, refB64, {maxTokens:900});
+      let j=null; try{ j=JSON.parse(raw.match(/\{[\s\S]*\}/)[0]) }catch{}
+      if(j && j.prompt){ renderAnalyze(j.prompt, j.style, j.palette, j.keywords, j.composition); addHist({kind:"analyze", prompt:j.prompt, keywords:(j.keywords||[]).join(", ")}); return; }
+      renderAnalyze(raw, "", "", [], ""); addHist({kind:"analyze", prompt:raw});
+    }catch(e){
+      if(String(e.message).includes("No API key")) toast("Tanpa vision key → heuristic lokal");
+      else toast("LLM gagal: "+e.message.slice(0,80)+" → heuristic");
+      const p=localAnalyzeFallback();
+      renderAnalyze(p,"heuristic lokal","pastel",p.split(",").slice(0,8),"centered"); addHist({kind:"analyze-local", prompt:p});
+    }
+  }finally{ btn.disabled=false; btn.textContent="🔍 Analisa jadi prompt"; }
+});
+function renderAnalyze(prompt, style, palette, keywords, comp){
+  const host=$("#analyzeResults"); host.innerHTML="";
+  const chips=(keywords||[]).map(k=>'<span class="tag">'+k+'</span>').join("");
+  const d=document.createElement("div"); d.className="prompt-card";
+  d.innerHTML='<div style="font-weight:700">Prompt hasil analisa</div><pre>'+prompt.replace(/</g,"&lt;")+'</pre>'+(style?'<div><b>Style:</b> '+style+' · <b>Palette:</b> '+palette+' · <b>Comp:</b> '+(comp||"")+'</div>':"")+(chips?'<div><b>Keywords Adobe ('+(keywords||[]).length+'):</b><div style="margin-top:6px">'+chips+'</div></div>':"")+'<div class="row" style="margin-top:8px"><button class="btn btn-sm btn-primary" id="aCopy">Copy prompt</button><button class="btn btn-sm" id="aPara">Parafrase 5x</button><button class="btn btn-sm btn-ghost" id="aSave">Simpan</button></div>';
+  host.appendChild(d);
+  d.querySelector("#aCopy").onclick=()=>{navigator.clipboard.writeText(prompt); toast("Copied")};
+  d.querySelector("#aSave").onclick=()=>{addHist({kind:"analyze",prompt,keywords:(keywords||[]).join(", ")}); toast("Simpan ✓")};
+  d.querySelector("#aPara").onclick=()=>{ $("#paraInput").value=prompt; document.querySelector('[data-tab="prompt"]').click(); $$(".subtab[data-sub]").forEach(x=>x.classList.remove("active")); document.querySelector('[data-sub="paraphrase"]').classList.add("active"); $$(".sub").forEach(s=>s.style.display="none"); $("#sub-paraphrase").style.display=""; };
+}
+function localParaphrase(prompt, count, style){
+  const out=[]; for(let i=0;i<count;i++){
+    let p=prompt;
+    if(i===1) p=p.replace("flat vector","minimal flat vector");
+    if(i===2) p=p.replace("isolated","centered isolated");
+    if(i===3) p=p.replace("clean shape","sharp vector shape");
+    if(i===4) p=p.replace("white background","plain white backdrop");
+    if(style==="keyword-rich") p+=", trending on Adobe Stock, highly detailed";
+    if(style==="casual") p=p.replace("illustration","cute illustration");
+    out.push(p+" — variation "+(i+1));
+  }
+  return out;
+}
+$("#btnParaphrase").addEventListener("click", async()=>{
+  const src=$("#paraInput").value.trim(); if(!src){toast("Isi prompt dulu"); return}
+  const count=parseInt($("#paraCount").value), style=$("#paraStyle").value;
+  const btn=$("#btnParaphrase"); btn.disabled=true; btn.textContent="...";
+  try{
+    let vars=[];
+    try{
+      const styleMap={ "vector-optimized":"vector-optimized, clean shape, no gradient, white background", "keyword-rich":"keyword rich untuk Adobe Stock, tambah sinonim SEO", "casual":"santai, playful", "formal":"formal, deskriptif"};
+      // avoid triple-quote issue: build string via concatenation
+      const q = String.fromCharCode(34)+String.fromCharCode(34)+String.fromCharCode(34);
+      const raw=await callLLM("Parafrase prompt ini jadi "+count+" variasi makna sama, kata beda. Gaya: "+styleMap[style]+". Output tiap variasi satu baris, tanpa nomor berlebih, tanpa penjelasan.\nPrompt: "+q+src+q);
+      vars=raw.split("\n").map(s=>s.replace(/^\s*\d+[\).\s-]+/,"").trim()).filter(s=>s.length>10).slice(0,count);
+      if(vars.length<count) throw new Error("short");
+    }catch(e){
+      if(String(e.message).includes("No API key")) toast("Tanpa key → sinonim lokal");
+      else toast("LLM gagal, fallback lokal");
+      vars=localParaphrase(src,count,style);
+    }
+    const host=$("#paraResults"); host.innerHTML="";
+    vars.forEach((p,i)=>{
+      const d=document.createElement("div"); d.className="prompt-card";
+      d.innerHTML='<div style="font-size:11px;color:var(--muted)">Variasi '+(i+1)+' · '+style+'</div><pre>'+p.replace(/</g,"&lt;")+'</pre><div class="row"><button class="btn btn-sm btn-primary">Copy</button><button class="btn btn-sm btn-ghost">Simpan</button></div>';
+      const buts=d.querySelectorAll("button");
+      buts[0].onclick=()=>{navigator.clipboard.writeText(p); toast("Copied "+(i+1))};
+      buts[1].onclick=()=>{addHist({kind:"paraphrase",prompt:p}); toast("Simpan ✓")};
+      host.appendChild(d);
+    });
+    addHist({kind:"paraphrase-batch", text:vars.join("\n"), prompt:vars[0]});
+  }finally{ btn.disabled=false; btn.textContent="↻ Parafrase"; }
+});
+$("#colors").addEventListener("input",e=>$("#colorsVal").textContent=e.target.value);
+$("#smooth").addEventListener("input",e=>$("#smoothVal").textContent=e.target.value);
+$("#simplify").addEventListener("input",e=>$("#simplifyVal").textContent=Number(e.target.value).toFixed(2));
+let uploadedDataURL="";
+$("#drop").addEventListener("click",()=>$("#fileInput").click());
+$("#drop").addEventListener("dragover",e=>{e.preventDefault(); e.currentTarget.classList.add("drag")});
+$("#drop").addEventListener("dragleave",e=>e.currentTarget.classList.remove("drag"));
+$("#drop").addEventListener("drop",async e=>{e.preventDefault(); e.currentTarget.classList.remove("drag"); const f=e.dataTransfer.files[0]; if(f) handleUpload(f)});
+$("#fileInput").addEventListener("change",e=>{const f=e.target.files[0]; if(f) handleUpload(f)});
+async function handleUpload(file){
+  if(file.size>20*1024*1024){toast("File >20MB"); return}
+  uploadedDataURL=await b64FromFile(file);
+  const img=$("#previewImg"); img.src=uploadedDataURL; img.style.display="block";
+  toast("Gambar siap — klik Trace");
+}
+async function doTrace(){
+  if(!uploadedDataURL){toast("Upload gambar dulu"); return}
+  const btn=$("#btnTrace"); btn.disabled=true; btn.textContent="Tracing...";
+  try{
+    const img=new Image(); img.src=uploadedDataURL; await new Promise((res,rej)=>{img.onload=res; img.onerror=rej});
+    const maxSide=1200;
+    let w=img.width, h=img.height; const sc=Math.min(1,maxSide/Math.max(w,h)); w=Math.round(w*sc); h=Math.round(h*sc);
+    const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(img,0,0,w,h);
+    const imageData=c.getContext("2d").getImageData(0,0,w,h);
+    const mode=$("#traceMode").value;
+    const colors=parseInt($("#colors").value);
+    const opts={
+      ltres: parseFloat($("#simplify").value),
+      qtres: parseFloat($("#simplify").value),
+      pathomit: $("#despeckle").checked?8:0,
+      numberofcolors: mode==="bw"?2:colors,
+      scale:1,
+      strokewidth:0,
+      linefilter: $("#ltres").checked,
+      roundcoords:1,
+      viewbox:true
+    };
+    if(mode==="bw"){
+      const d=imageData.data; for(let i=0;i<d.length;i+=4){ const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]; const v=g>128?255:0; d[i]=d[i+1]=d[i+2]=v; }
+    }
+    let svgstr=ImageTracer.imagedataToSVG(imageData, opts);
+    svgContent=svgstr; origSvgContent=svgstr;
+    renderSVG(svgstr);
+    buildLayers(svgstr);
+    const paths=(svgstr.match(/<path/g)||[]).length;
+    $("#statPaths").textContent=paths+" path";
+    $("#statColors").textContent=(mode==="bw"?2:colors)+" warna";
+    $("#statSize").textContent=w+"×"+h+" trace";
+    toast("Trace selesai: "+paths+" path");
+  }catch(e){ toast("Trace gagal: "+(e.message||e)); console.error(e)}
+  finally{ btn.disabled=false; btn.textContent="⚡ Trace"; }
+}
+$("#btnTrace").addEventListener("click", doTrace);
+function renderSVG(svgstr){
+  const host=$("#svgHost"); const ph=$("#placeholder");
+  const bg=$("#bgMode").value;
+  let bgStyle="background:#fff";
+  if(bg==="transparent") bgStyle="background:transparent";
+  if(bg==="checker") bgStyle="background:conic-gradient(#ddd 0.25turn,#fff 0 0.5turn,#ddd 0 0.75turn,#fff 1turn);background-size:20px 20px";
+  host.innerHTML='<div style="width:100%;height:100%;display:grid;place-items:center;'+bgStyle+';padding:12px"><div id="svgInner" style="transform:scale('+currentScale+');transform-origin:center;transition:.15s">'+svgstr+'</div></div>';
+  host.style.display="grid"; ph.style.display="none";
+  const svg=host.querySelector("svg"); if(svg){ svg.style.maxWidth="100%"; svg.style.maxHeight="480px"; svg.style.height="auto"; svg.setAttribute("preserveAspectRatio","xMidYMid meet"); }
+}
+function buildLayers(svgstr){
+  const doc=new DOMParser().parseFromString(svgstr,"image/svg+xml");
+  const paths=[...doc.querySelectorAll("path")];
+  const layersEl=$("#layers"); layersEl.innerHTML="";
+  $("#noLayers").style.display=paths.length?"none":"";
+  $("#layerCount").textContent=paths.length;
+  paths.forEach((p,i)=>{
+    const fill=p.getAttribute("fill")||"#000";
+    const row=document.createElement("div"); row.className="layer";
+    row.innerHTML='<input type="color" value="'+toHex(fill)+'"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">path '+(i+1)+' — '+fill+'</span><button class="btn btn-sm btn-ghost" data-del>✕</button><button class="btn btn-sm" data-eye>◉</button>';
+    const col=row.querySelector('input[type=color]');
+    col.addEventListener("input",()=>{ p.setAttribute("fill",col.value); syncSVGFromDoc(doc); });
+    row.querySelector("[data-del]").addEventListener("click",()=>{ p.remove(); syncSVGFromDoc(doc); row.remove(); $("#layerCount").textContent=doc.querySelectorAll("path").length; toast("Hapus path "+(i+1)); });
+    let vis=true;
+    row.querySelector("[data-eye]").addEventListener("click",()=>{ vis=!vis; p.style.display=vis?"":"none"; syncSVGFromDoc(doc); row.style.opacity=vis?"1":".45"; });
+    layersEl.appendChild(row);
+  });
+  function syncSVGFromDoc(d){
+    const s=new XMLSerializer().serializeToString(d.documentElement);
+    svgContent=s; renderSVG(s);
+  }
+}
+function toHex(c){
+  if(!c) return "#000000";
+  c=c.trim();
+  if(c.startsWith("#")){ if(c.length===4) return "#"+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]; return c.slice(0,7); }
+  const m=c.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/); if(m) return "#"+[1,2,3].map(i=>Number(m[i]).toString(16).padStart(2,"0")).join("");
+  return "#000000";
+}
+$("#bgMode").addEventListener("change",()=>{ if(svgContent) renderSVG(svgContent)});
+$("#btnFit").addEventListener("click",()=>{currentScale=1; if(svgContent) renderSVG(svgContent)});
+$("#btnZoomIn").addEventListener("click",()=>{currentScale=Math.min(3,currentScale+0.15); if(svgContent) renderSVG(svgContent)});
+$("#btnZoomOut").addEventListener("click",()=>{currentScale=Math.max(0.3,currentScale-0.15); if(svgContent) renderSVG(svgContent)});
+$("#btnReset").addEventListener("click",()=>{ if(origSvgContent){svgContent=origSvgContent; renderSVG(svgContent); buildLayers(svgContent); toast("Reset") }});
+$("#btnRemoveBg").addEventListener("click",()=>{
+  if(!svgContent){toast("Trace dulu"); return}
+  const doc=new DOMParser().parseFromString(svgContent,"image/svg+xml");
+  let best=null, bestArea=0;
+  doc.querySelectorAll("path").forEach(p=>{
+    const f=(p.getAttribute("fill")||"").toLowerCase();
+    const isWhite=f==="#ffffff"||f==="white"||f==="rgb(255,255,255)";
+    if(isWhite){ const d=p.getAttribute("d")||""; if(d.length>bestArea){bestArea=d.length; best=p} }
+  });
+  if(best){ best.remove(); const s=new XMLSerializer().serializeToString(doc.documentElement); svgContent=s; renderSVG(s); buildLayers(s); toast("Background putih hapus ✓") } else toast("Tidak ketemu background putih");
+});
+function getArtSize(){ return parseInt($("#artSize").value)||5000; }
+$("#btnSVG").addEventListener("click",()=>{ if(!svgContent){toast("Trace dulu"); return} download(svgContent,"vector.svg","image/svg+xml"); });
+$("#btnEPS").addEventListener("click",()=>{
+  if(!svgContent){toast("Trace dulu"); return}
+  const size=getArtSize();
+  const bbox="0 0 "+size+" "+size;
+  const eps="%!PS-Adobe-3.0 EPSF-3.0\n%%Creator: VectorStock Studio\n%%BoundingBox: "+bbox+"\n%%HiResBoundingBox: "+bbox+"\n%%Title: vector\n%%EndComments\n"+svgContent+"\n%%EOF\n";
+  download(eps,"vector.eps","application/postscript");
+});
+async function rasterize(mime, quality){
+  if(!svgContent){toast("Trace dulu"); return null}
+  const size=getArtSize();
+  const svgBlob=new Blob([svgContent],{type:"image/svg+xml"});
+  const url=URL.createObjectURL(svgBlob);
+  const img=new Image(); img.src=url; await new Promise((res,rej)=>{img.onload=res; img.onerror=rej});
+  const c=document.createElement("canvas"); c.width=size; c.height=size;
+  const ctx=c.getContext("2d");
+  if(mime==="image/jpeg"){ ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,size,size); }
+  const sc=Math.min(size/img.width, size/img.height)*0.92;
+  const w=img.width*sc, h=img.height*sc;
+  ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);
+  URL.revokeObjectURL(url);
+  const blob=await new Promise(res=>c.toBlob(res,mime,quality));
+  return blob;
+}
+$("#btnPNG").addEventListener("click", async()=>{ const b=await rasterize("image/png"); if(!b) return; const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="preview.png"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); });
+$("#btnJPG").addEventListener("click", async()=>{ const b=await rasterize("image/jpeg",0.92); if(!b) return; const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="preview.jpg"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); });
+$("#btnZIP").addEventListener("click", async()=>{
+  if(!svgContent){toast("Trace dulu"); return}
+  const btn=$("#btnZIP"); btn.disabled=true; btn.textContent="Membuat ZIP...";
+  try{
+    const zip=new JSZip();
+    zip.file("vector.svg", svgContent);
+    const size=getArtSize(); const bbox="0 0 "+size+" "+size;
+    const eps="%!PS-Adobe-3.0 EPSF-3.0\n%%Creator: VectorStock Studio\n%%BoundingBox: "+bbox+"\n%%HiResBoundingBox: "+bbox+"\n%%Title: vector\n%%EndComments\n"+svgContent+"\n%%EOF\n";
+    zip.file("vector.eps", eps);
+    const jpg=await rasterize("image/jpeg",0.92);
+    if(jpg) zip.file("preview.jpg", jpg);
+    zip.file("info.txt", "VectorStock Studio — Adobe Stock bundle\nArtboard: "+size+"px sRGB\nVector: vector.svg / vector.eps (AI10 compat)\nPreview: preview.jpg (wajib upload bersama vector di Adobe Stock)\n");
+    const blob=await zip.generateAsync({type:"blob"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="adobe-stock-vector.zip"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    toast("ZIP siap ✓");
+  }catch(e){toast("ZIP gagal: "+e.message)} finally{btn.disabled=false; btn.textContent="⬇ ZIP SVG+JPG (Adobe Stock)"}
+});
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(); deferredPrompt=e; $("#btnInstall").style.display="" });
+$("#btnInstall").addEventListener("click",async()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $("#btnInstall").style.display="none"; }});
+if("serviceWorker" in navigator){
+  const sw="self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))})";
+  const blob=new Blob([sw],{type:"text/javascript"}); const url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+</script>
+</body>
+</html>
